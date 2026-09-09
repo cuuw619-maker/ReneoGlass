@@ -10,11 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import restudio.reglass.client.api.ReGlassConfig;
 
 /**
- * Native Sodium 0.8 configuration integration for NeoForge.
- *
- * Sodium discovers this class through @ConfigEntryPointForge when Sodium is
- * installed. Reese's Sodium Options uses the same Sodium Config API, so the
- * ReGlass page is automatically available in Reese's replacement screen too.
+ * Native Sodium Config API integration. Reese's Sodium Options consumes the
+ * same API, so this page works in both Sodium's and Reese's option screens.
  */
 @ConfigEntryPointForge("reglass")
 public final class ReGlassSodiumConfig implements ConfigEntryPoint {
@@ -28,157 +25,146 @@ public final class ReGlassSodiumConfig implements ConfigEntryPoint {
                 .setNonTintedIcon(ResourceLocation.fromNamespaceAndPath(MOD_ID, "icon.png"))
                 .addPage(createGeneralPage(builder))
                 .addPage(createAppearancePage(builder))
-                .addPage(createEffectsPage(builder))
-                .addPage(createInteractionPage(builder));
+                .addPage(createRefractionPage(builder))
+                .addPage(createGlarePage(builder))
+                .addPage(createLightingPage(builder))
+                .addPage(createInteractionPage(builder))
+                .addPage(createAdvancedPage(builder));
     }
 
-    private OptionPageBuilder createGeneralPage(ConfigBuilder builder) {
-        return builder.createOptionPage()
-                .setName(Component.translatable("reglass.options.page.general"))
-                .addOptionGroup(builder.createOptionGroup()
-                        .setName(Component.translatable("reglass.options.group.features"))
-                        .addOption(booleanOption(builder, "enable_redesign", "features_enableRedesign",
-                                () -> CONFIG.features.enableRedesign,
-                                value -> CONFIG.features.enableRedesign = value,
-                                true))
-                        .addOption(booleanOption(builder, "buttons", "features_buttons",
-                                () -> CONFIG.features.buttons,
-                                value -> CONFIG.features.buttons = value,
-                                true))
-                        .addOption(booleanOption(builder, "sliders", "features_sliders",
-                                () -> CONFIG.features.sliders,
-                                value -> CONFIG.features.sliders = value,
-                                true))
-                        .addOption(booleanOption(builder, "hotbar", "features_hotbar",
-                                () -> CONFIG.features.hotbar,
-                                value -> CONFIG.features.hotbar = value,
-                                true))
-                        .addOption(booleanOption(builder, "cancel_screen_darkening", "features_cancelScreenDarkening",
-                                () -> CONFIG.features.cancelScreenDarkening,
-                                value -> CONFIG.features.cancelScreenDarkening = value,
-                                true))
-                        .addOption(booleanOption(builder, "pixelated_grid", "features_pixelatedGrid",
-                                () -> CONFIG.features.pixelatedGrid,
-                                value -> CONFIG.features.pixelatedGrid = value,
-                                false)));
+    private OptionPageBuilder createGeneralPage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.general"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.features"))
+                        .addOption(bool(b, "enable_redesign", () -> CONFIG.features.enableRedesign, v -> CONFIG.features.enableRedesign = v))
+                        .addOption(bool(b, "buttons", () -> CONFIG.features.buttons, v -> CONFIG.features.buttons = v))
+                        .addOption(bool(b, "sliders", () -> CONFIG.features.sliders, v -> CONFIG.features.sliders = v))
+                        .addOption(bool(b, "hotbar", () -> CONFIG.features.hotbar, v -> CONFIG.features.hotbar = v))
+                        .addOption(bool(b, "cancel_screen_darkening", () -> CONFIG.features.cancelScreenDarkening, v -> CONFIG.features.cancelScreenDarkening = v))
+                        .addOption(bool(b, "pixelated_grid", () -> CONFIG.features.pixelatedGrid, v -> CONFIG.features.pixelatedGrid = v)));
     }
 
-    private OptionPageBuilder createAppearancePage(ConfigBuilder builder) {
-        return builder.createOptionPage()
-                .setName(Component.translatable("reglass.options.page.appearance"))
-                .addOptionGroup(builder.createOptionGroup()
-                        .setName(Component.translatable("reglass.options.group.appearance"))
-                        .addOption(floatOption(builder, "tint_alpha", () -> CONFIG.defaultTintAlpha,
-                                value -> CONFIG.defaultTintAlpha = value, 0, 100, 0.01f, 0))
-                        .addOption(intOption(builder, "blur_radius", () -> CONFIG.defaultBlurRadius,
-                                value -> CONFIG.defaultBlurRadius = value, 0, 32, 1))
-                        .addOption(floatOption(builder, "smoothing", () -> CONFIG.defaultSmoothing,
-                                value -> CONFIG.defaultSmoothing = value, -20, 20, 0.001f, 3))
-                        .addOption(floatOption(builder, "shadow_expand", () -> CONFIG.defaultShadowExpand,
-                                value -> CONFIG.defaultShadowExpand = value, 0, 100, 1f, 30))
-                        .addOption(floatOption(builder, "shadow_factor", () -> CONFIG.defaultShadowFactor,
-                                value -> CONFIG.defaultShadowFactor = value, 0, 100, 0.01f, 25))
-                        .addOption(floatOption(builder, "shadow_offset_y", () -> CONFIG.defaultShadowOffsetY,
-                                value -> CONFIG.defaultShadowOffsetY = value, -100, 100, 0.1f, 20)));
+    private OptionPageBuilder createAppearancePage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.appearance"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.appearance"))
+                        .addOption(intOpt(b, "tint_color", () -> CONFIG.defaultTintColor, v -> CONFIG.defaultTintColor = v, 0, 0xFFFFFF, 1))
+                        .addOption(floatOpt(b, "tint_alpha", () -> CONFIG.defaultTintAlpha, v -> CONFIG.defaultTintAlpha = v, 0, 1, 0.01f))
+                        .addOption(intOpt(b, "blur_radius", () -> CONFIG.defaultBlurRadius, v -> CONFIG.defaultBlurRadius = v, 0, 64, 1))
+                        .addOption(floatOpt(b, "smoothing", () -> CONFIG.defaultSmoothing, v -> CONFIG.defaultSmoothing = v, -0.02f, 0.02f, 0.001f)))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.shadow"))
+                        .addOption(floatOpt(b, "shadow_expand", () -> CONFIG.defaultShadowExpand, v -> CONFIG.defaultShadowExpand = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "shadow_factor", () -> CONFIG.defaultShadowFactor, v -> CONFIG.defaultShadowFactor = v, 0, 1, 0.01f))
+                        .addOption(floatOpt(b, "shadow_offset_x", () -> CONFIG.defaultShadowOffsetX, v -> CONFIG.defaultShadowOffsetX = v, -50, 50, 0.1f))
+                        .addOption(floatOpt(b, "shadow_offset_y", () -> CONFIG.defaultShadowOffsetY, v -> CONFIG.defaultShadowOffsetY = v, -50, 50, 0.1f))
+                        .addOption(intOpt(b, "shadow_color", () -> CONFIG.defaultShadowColor, v -> CONFIG.defaultShadowColor = v, 0, 0xFFFFFF, 1))
+                        .addOption(floatOpt(b, "shadow_color_alpha", () -> CONFIG.defaultShadowColorAlpha, v -> CONFIG.defaultShadowColorAlpha = v, 0, 1, 0.01f)));
     }
 
-    private OptionPageBuilder createEffectsPage(ConfigBuilder builder) {
-        return builder.createOptionPage()
-                .setName(Component.translatable("reglass.options.page.effects"))
-                .addOptionGroup(builder.createOptionGroup()
-                        .setName(Component.translatable("reglass.options.group.refraction"))
-                        .addOption(floatOption(builder, "refraction_thickness", () -> CONFIG.defaultRefThickness,
-                                value -> CONFIG.defaultRefThickness = value, 1, 60, 1f, 20))
-                        .addOption(floatOption(builder, "refraction_factor", () -> CONFIG.defaultRefFactor,
-                                value -> CONFIG.defaultRefFactor = value, 100, 250, 0.01f, 140))
-                        .addOption(floatOption(builder, "dispersion", () -> CONFIG.defaultRefDispersion,
-                                value -> CONFIG.defaultRefDispersion = value, 0, 100, 0.1f, 70))
-                        .addOption(floatOption(builder, "fresnel_range", () -> CONFIG.defaultRefFresnelRange,
-                                value -> CONFIG.defaultRefFresnelRange = value, 0, 60, 1f, 30))
-                        .addOption(floatOption(builder, "fresnel_hardness", () -> CONFIG.defaultRefFresnelHardness,
-                                value -> CONFIG.defaultRefFresnelHardness = value, 0, 100, 1f, 20))
-                        .addOption(floatOption(builder, "fresnel_factor", () -> CONFIG.defaultRefFresnelFactor,
-                                value -> CONFIG.defaultRefFresnelFactor = value, 0, 100, 1f, 20)))
-                .addOptionGroup(builder.createOptionGroup()
-                        .setName(Component.translatable("reglass.options.group.glare"))
-                        .addOption(floatOption(builder, "glare_range", () -> CONFIG.defaultGlareRange,
-                                value -> CONFIG.defaultGlareRange = value, 0, 60, 1f, 30))
-                        .addOption(floatOption(builder, "glare_hardness", () -> CONFIG.defaultGlareHardness,
-                                value -> CONFIG.defaultGlareHardness = value, 0, 100, 1f, 20))
-                        .addOption(floatOption(builder, "glare_convergence", () -> CONFIG.defaultGlareConvergence,
-                                value -> CONFIG.defaultGlareConvergence = value, 0, 100, 1f, 50))
-                        .addOption(floatOption(builder, "glare_opposite_factor", () -> CONFIG.defaultGlareOppositeFactor,
-                                value -> CONFIG.defaultGlareOppositeFactor = value, 0, 100, 1f, 80))
-                        .addOption(floatOption(builder, "glare_factor", () -> CONFIG.defaultGlareFactor,
-                                value -> CONFIG.defaultGlareFactor = value, 0, 100, 1f, 90)));
+    private OptionPageBuilder createRefractionPage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.refraction"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.refraction"))
+                        .addOption(floatOpt(b, "refraction_thickness", () -> CONFIG.defaultRefThickness, v -> CONFIG.defaultRefThickness = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "refraction_factor", () -> CONFIG.defaultRefFactor, v -> CONFIG.defaultRefFactor = v, 0.5f, 4, 0.01f))
+                        .addOption(floatOpt(b, "dispersion", () -> CONFIG.defaultRefDispersion, v -> CONFIG.defaultRefDispersion = v, 0, 100, 0.1f))
+                        .addOption(floatOpt(b, "fresnel_range", () -> CONFIG.defaultRefFresnelRange, v -> CONFIG.defaultRefFresnelRange = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "fresnel_hardness", () -> CONFIG.defaultRefFresnelHardness, v -> CONFIG.defaultRefFresnelHardness = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "fresnel_factor", () -> CONFIG.defaultRefFresnelFactor, v -> CONFIG.defaultRefFresnelFactor = v, 0, 100, 0.5f)));
     }
 
-    private OptionPageBuilder createInteractionPage(ConfigBuilder builder) {
-        return builder.createOptionPage()
-                .setName(Component.translatable("reglass.options.page.interaction"))
-                .addOptionGroup(builder.createOptionGroup()
-                        .setName(Component.translatable("reglass.options.group.interaction"))
-                        .addOption(floatOption(builder, "hover_scale", () -> CONFIG.hoverScalePx,
-                                value -> CONFIG.hoverScalePx = value, 0, 60, 0.1f, 15))
-                        .addOption(floatOption(builder, "focus_scale", () -> CONFIG.focusScalePx,
-                                value -> CONFIG.focusScalePx = value, 0, 80, 0.1f, 25))
-                        .addOption(floatOption(builder, "focus_border_width", () -> CONFIG.focusBorderWidthPx,
-                                value -> CONFIG.focusBorderWidthPx = value, 0, 60, 0.1f, 20))
-                        .addOption(floatOption(builder, "focus_border_intensity", () -> CONFIG.focusBorderIntensity,
-                                value -> CONFIG.focusBorderIntensity = value, 0, 100, 0.01f, 75))
-                        .addOption(floatOption(builder, "focus_border_speed", () -> CONFIG.focusBorderSpeed,
-                                value -> CONFIG.focusBorderSpeed = value, 0, 40, 0.1f, 16))
-                        .addOption(floatOption(builder, "pixelated_grid_size", () -> CONFIG.pixelatedGridSize,
-                                value -> CONFIG.pixelatedGridSize = value, 1, 32, 1f, 8)));
+    private OptionPageBuilder createGlarePage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.glare"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.glare"))
+                        .addOption(floatOpt(b, "glare_range", () -> CONFIG.defaultGlareRange, v -> CONFIG.defaultGlareRange = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "glare_hardness", () -> CONFIG.defaultGlareHardness, v -> CONFIG.defaultGlareHardness = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "glare_convergence", () -> CONFIG.defaultGlareConvergence, v -> CONFIG.defaultGlareConvergence = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "glare_opposite_factor", () -> CONFIG.defaultGlareOppositeFactor, v -> CONFIG.defaultGlareOppositeFactor = v, 0, 100, 0.5f))
+                        .addOption(floatOpt(b, "glare_factor", () -> CONFIG.defaultGlareFactor, v -> CONFIG.defaultGlareFactor = v, 0, 100, 0.5f))
+                        .addOption(intOpt(b, "glare_angle", () -> Math.round(CONFIG.defaultGlareAngleRad * 180f / (float) Math.PI), v -> CONFIG.defaultGlareAngleRad = v * (float) Math.PI / 180f, -180, 180, 1)));
     }
 
-    private OptionBuilder booleanOption(ConfigBuilder builder, String id, String unused,
-                                        java.util.function.Supplier<Boolean> getter,
-                                        java.util.function.Consumer<Boolean> setter,
-                                        boolean rebuild) {
-        OptionBuilder option = builder.createBooleanOption(id(id))
-                .setName(Component.translatable("reglass.options." + id + ".name"))
-                .setTooltip(Component.translatable("reglass.options." + id + ".tooltip"))
+    private OptionPageBuilder createLightingPage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.lighting"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.rim_light"))
+                        .addOption(floatOpt(b, "rim_light_x", () -> CONFIG.rimLight.direction().x, v -> rebuildRim(v, CONFIG.rimLight.direction().y), -1, 1, 0.01f))
+                        .addOption(floatOpt(b, "rim_light_y", () -> CONFIG.rimLight.direction().y, v -> rebuildRim(CONFIG.rimLight.direction().x, v), -1, 1, 0.01f))
+                        .addOption(intOpt(b, "rim_light_color", () -> CONFIG.rimLight.color(), v -> rebuildRim(CONFIG.rimLight.direction().x, CONFIG.rimLight.direction().y, v, CONFIG.rimLight.intensity()), 0, 0xFFFFFF, 1))
+                        .addOption(floatOpt(b, "rim_light_intensity", () -> CONFIG.rimLight.intensity(), v -> rebuildRim(CONFIG.rimLight.direction().x, CONFIG.rimLight.direction().y, CONFIG.rimLight.color(), v), 0, 2, 0.01f)));
+    }
+
+    private OptionPageBuilder createInteractionPage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.interaction"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.interaction"))
+                        .addOption(floatOpt(b, "hover_scale", () -> CONFIG.hoverScalePx, v -> CONFIG.hoverScalePx = v, 0, 20, 0.1f))
+                        .addOption(floatOpt(b, "focus_scale", () -> CONFIG.focusScalePx, v -> CONFIG.focusScalePx = v, 0, 20, 0.1f))
+                        .addOption(floatOpt(b, "focus_border_width", () -> CONFIG.focusBorderWidthPx, v -> CONFIG.focusBorderWidthPx = v, 0, 20, 0.1f))
+                        .addOption(floatOpt(b, "focus_border_intensity", () -> CONFIG.focusBorderIntensity, v -> CONFIG.focusBorderIntensity = v, 0, 2, 0.01f))
+                        .addOption(floatOpt(b, "focus_border_speed", () -> CONFIG.focusBorderSpeed, v -> CONFIG.focusBorderSpeed = v, 0, 20, 0.1f))
+                        .addOption(floatOpt(b, "pixelated_grid_size", () -> CONFIG.pixelatedGridSize, v -> CONFIG.pixelatedGridSize = v, 1, 64, 0.5f)));
+    }
+
+    private OptionPageBuilder createAdvancedPage(ConfigBuilder b) {
+        return b.createOptionPage().setName(t("page.advanced"))
+                .addOptionGroup(b.createOptionGroup().setName(t("group.runtime"))
+                        .addOption(floatOpt(b, "pixel_epsilon", () -> CONFIG.pixelEpsilon, v -> CONFIG.pixelEpsilon = v, 0, 20, 0.05f))
+                        .addOption(floatOpt(b, "debug_step", () -> CONFIG.debugStep, v -> CONFIG.debugStep = v, 0, 20, 0.1f)));
+    }
+
+    private void rebuildRim(float x, float y) {
+        rebuildRim(x, y, CONFIG.rimLight.color(), CONFIG.rimLight.intensity());
+    }
+
+    private void rebuildRim(float x, float y, int color, float intensity) {
+        float len = (float) Math.sqrt(x * x + y * y);
+        if (len < 0.0001f) { x = -1f; y = 1f; len = (float) Math.sqrt(2); }
+        CONFIG.rimLight = new restudio.reglass.client.api.model.RimLight(new org.joml.Vector2f(x / len, y / len), color, intensity);
+    }
+
+    private Component t(String key) {
+        return Component.translatable("reglass.options." + key);
+    }
+
+    private OptionBuilder bool(ConfigBuilder b, String id,
+                               java.util.function.Supplier<Boolean> getter,
+                               java.util.function.Consumer<Boolean> setter) {
+        return b.createBooleanOption(id(id))
+                .setName(t(id + ".name"))
+                .setTooltip(t(id + ".tooltip"))
                 .setDefaultValue(getter.get())
                 .setBinding(setter, getter)
-                .setStorageHandler(ReGlassSettingsIO::saveFromMemory);
-        if (rebuild) {
-            option.setApplyHook(ReGlassSettingsIO::saveFromMemory);
-        }
-        return option;
+                .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
+                .setApplyHook(ReGlassSettingsIO::saveFromMemory);
     }
 
-    private OptionBuilder intOption(ConfigBuilder builder, String id,
-                                    java.util.function.Supplier<Integer> getter,
-                                    java.util.function.Consumer<Integer> setter,
-                                    int min, int max, int step) {
-        return builder.createIntegerOption(id(id))
-                .setName(Component.translatable("reglass.options." + id + ".name"))
-                .setTooltip(Component.translatable("reglass.options." + id + ".tooltip"))
+    private OptionBuilder intOpt(ConfigBuilder b, String id,
+                                 java.util.function.Supplier<Integer> getter,
+                                 java.util.function.Consumer<Integer> setter,
+                                 int min, int max, int step) {
+        return b.createIntegerOption(id(id))
+                .setName(t(id + ".name"))
+                .setTooltip(t(id + ".tooltip"))
                 .setRange(min, max, step)
                 .setDefaultValue(getter.get())
                 .setBinding(setter, getter)
-                .setStorageHandler(ReGlassSettingsIO::saveFromMemory);
+                .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
+                .setApplyHook(ReGlassSettingsIO::saveFromMemory);
     }
 
-    private OptionBuilder floatOption(ConfigBuilder builder, String id,
-                                      java.util.function.Supplier<Float> getter,
-                                      java.util.function.Consumer<Float> setter,
-                                      int min, int max, float step, int defaultScaled) {
+    private OptionBuilder floatOpt(ConfigBuilder b, String id,
+                                   java.util.function.Supplier<Float> getter,
+                                   java.util.function.Consumer<Float> setter,
+                                   float min, float max, float step) {
         int scale = scaleFor(step);
         int scaledMin = Math.round(min * scale);
         int scaledMax = Math.round(max * scale);
         int scaledStep = Math.max(1, Math.round(step * scale));
-        int scaledDefault = Math.round(getter.get() * scale);
-
-        return builder.createIntegerOption(id(id))
-                .setName(Component.translatable("reglass.options." + id + ".name"))
-                .setTooltip(Component.translatable("reglass.options." + id + ".tooltip"))
+        return b.createIntegerOption(id(id))
+                .setName(t(id + ".name"))
+                .setTooltip(t(id + ".tooltip"))
                 .setRange(scaledMin, scaledMax, scaledStep)
-                .setValueFormatter(value -> Component.literal(format(value / (float) scale)))
-                .setDefaultValue(scaledDefault == 0 && defaultScaled != 0 ? defaultScaled : scaledDefault)
-                .setBinding(value -> setter.accept(value / (float) scale), () -> Math.round(getter.get() * scale))
-                .setStorageHandler(ReGlassSettingsIO::saveFromMemory);
+                .setValueFormatter(v -> Component.literal(format(v / (float) scale)))
+                .setDefaultValue(Math.round(getter.get() * scale))
+                .setBinding(v -> setter.accept(v / (float) scale), () -> Math.round(getter.get() * scale))
+                .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
+                .setApplyHook(ReGlassSettingsIO::saveFromMemory);
     }
 
     private int scaleFor(float step) {
@@ -189,9 +175,7 @@ public final class ReGlassSodiumConfig implements ConfigEntryPoint {
     }
 
     private String format(float value) {
-        if (Math.abs(value - Math.round(value)) < 0.0001f) {
-            return Integer.toString(Math.round(value));
-        }
+        if (Math.abs(value - Math.round(value)) < 0.0001f) return Integer.toString(Math.round(value));
         return String.format(java.util.Locale.ROOT, "%.3f", value);
     }
 
