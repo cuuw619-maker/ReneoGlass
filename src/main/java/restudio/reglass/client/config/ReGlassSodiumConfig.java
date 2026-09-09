@@ -9,10 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import restudio.reglass.client.api.ReGlassConfig;
 
-/**
- * Native Sodium Config API integration. Reese's Sodium Options consumes the
- * same API, so this page works in both Sodium's and Reese's option screens.
- */
 @ConfigEntryPointForge("reglass")
 public final class ReGlassSodiumConfig implements ConfigEntryPoint {
     private static final String MOD_ID = "reglass";
@@ -131,7 +127,7 @@ public final class ReGlassSodiumConfig implements ConfigEntryPoint {
                 .setDefaultValue(getter.get())
                 .setBinding(setter, getter)
                 .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
-                .setApplyHook(ReGlassSettingsIO::saveFromMemory);
+                .setApplyHook(state -> ReGlassSettingsIO.saveFromMemory());
     }
 
     private OptionBuilder intOpt(ConfigBuilder b, String id,
@@ -145,7 +141,7 @@ public final class ReGlassSodiumConfig implements ConfigEntryPoint {
                 .setDefaultValue(getter.get())
                 .setBinding(setter, getter)
                 .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
-                .setApplyHook(ReGlassSettingsIO::saveFromMemory);
+                .setApplyHook(state -> ReGlassSettingsIO.saveFromMemory());
     }
 
     private OptionBuilder floatOpt(ConfigBuilder b, String id,
@@ -164,7 +160,7 @@ public final class ReGlassSodiumConfig implements ConfigEntryPoint {
                 .setDefaultValue(Math.round(getter.get() * scale))
                 .setBinding(v -> setter.accept(v / (float) scale), () -> Math.round(getter.get() * scale))
                 .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
-                .setApplyHook(ReGlassSettingsIO::saveFromMemory);
+                .setApplyHook(state -> ReGlassSettingsIO.saveFromMemory());
     }
 
     private int scaleFor(float step) {
