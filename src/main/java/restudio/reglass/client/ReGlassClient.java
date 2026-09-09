@@ -40,7 +40,7 @@ public final class ReGlassClient {
 
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
-        KeyMapping.Category category = KeyMapping.Category.MISC;
+        String category = "key.categories.reglass";
         playgroundKey = new KeyMapping("key.reglass.playground", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, category);
         configKey = new KeyMapping("key.reglass.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, category);
         event.register(playgroundKey);
@@ -63,11 +63,6 @@ public final class ReGlassClient {
             }
         }
 
-        /**
-         * Applies the glass surface to vanilla/NeoForge widgets without relying
-         * on Fabric's widget mixins. Rendering happens after the widget itself,
-         * so the vanilla text and hitboxes remain untouched.
-         */
         @SubscribeEvent
         public static void renderScreen(ScreenEvent.Render.Post event) {
             Screen screen = event.getScreen();
