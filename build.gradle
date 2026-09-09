@@ -37,9 +37,9 @@ java {
 }
 
 dependencies {
-    // Sodium is an optional client-side integration. The API is compile-only;
-    // the actual Sodium mod is supplied by the user's installation.
-    compileOnly "net.caffeinemc:sodium-neoforge:0.8.12+mc1.21.1"
+    // Sodium is an optional client-side integration. Compile against its
+    // NeoForge mod jar; the user's Sodium installation supplies it at runtime.
+    compileOnly "net.caffeinemc:sodium-neoforge-mod:0.8.12+mc1.21.1@jar"
 }
 
 jar {
