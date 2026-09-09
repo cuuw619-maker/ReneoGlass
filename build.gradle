@@ -13,6 +13,10 @@ base {
 
 repositories {
     mavenCentral()
+    maven {
+        name = 'CaffeineMC'
+        url = 'https://maven.caffeinemc.net/releases'
+    }
 }
 
 neoForge {
@@ -30,6 +34,12 @@ tasks.withType(JavaCompile).configureEach {
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
+}
+
+dependencies {
+    // Sodium is an optional client-side integration. The API is compile-only;
+    // the actual Sodium mod is supplied by the user's installation.
+    compileOnly "net.caffeinemc:sodium-neoforge:0.8.12+mc1.21.1"
 }
 
 jar {
