@@ -17,20 +17,10 @@ import java.nio.FloatBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-/**
- * Real Liquid Glass renderer for GUI widgets.
- *
- * The renderer snapshots the Minecraft main framebuffer into a separate texture,
- * then renders each glass capsule with a GLSL fragment shader that samples that
- * snapshot and performs UV displacement, chromatic dispersion, edge Fresnel and
- * specular highlighting. This is intentionally separate from the GuiGraphics
- * approximation used by the public API.
- */
+/** Real framebuffer-sampling Liquid Glass renderer for GUI widgets. */
 public final class LiquidGlassRenderer {
-    private static final ResourceLocation VERTEX =
-            ResourceLocation.fromNamespaceAndPath(ReGlass.MOD_ID, "shaders/core/liquid_glass_real.vsh");
-    private static final ResourceLocation FRAGMENT =
-            ResourceLocation.fromNamespaceAndPath(ReGlass.MOD_ID, "shaders/core/liquid_glass_real.fsh");
+    private static final ResourceLocation VERTEX = ResourceLocation.fromNamespaceAndPath(ReGlass.MOD_ID, "shaders/core/liquid_glass_real.vsh");
+    private static final ResourceLocation FRAGMENT = ResourceLocation.fromNamespaceAndPath(ReGlass.MOD_ID, "shaders/core/liquid_glass_real.fsh");
 
     private static int program;
     private static int vao;
@@ -41,15 +31,7 @@ public final class LiquidGlassRenderer {
     private static boolean initialized;
     private static boolean frameReady;
 
-    private static int uRect;
-    private static int uRadius;
-    private static int uScreen;
-    private static int uRefraction;
-    private static int uHighlight;
-    private static int uTintAlpha;
-    private static int uHover;
-    private static int uTime;
-    private static int uSampler;
+    private static int uRect, uRadius, uScreen, uRefraction, uHighlight, uTintAlpha, uHover, uTime, uSampler;
 
     private LiquidGlassRenderer() {}
 
@@ -63,9 +45,6 @@ public final class LiquidGlassRenderer {
         ensureInitialized(width, height);
         if (!initialized) return;
 
-        // The main render target is bound while ScreenEvent.Render.Post fires.
-        // Copying into our own texture avoids sampling from and writing to the
-        // same image in one pass (undefined feedback on OpenGL).
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, snapshotTexture);
         GL11.glCopyTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
@@ -87,8 +66,9 @@ public final class LiquidGlassRenderer {
         RenderSystem.disableCull();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderTexture(0, snapshotTexture);
 
+        GL11.glActiveTexture(GL11.GL_TEXTURE0);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, snapshotTexture);
         GL20.glUseProgram(program);
         GL30.glBindVertexArray(vao);
 
@@ -99,17 +79,17 @@ public final class LiquidGlassRenderer {
         GL20.glUniform1f(uHighlight, Math.max(0f, Math.min(1f, highlight)));
         GL20.glUniform1f(uTintAlpha, Math.max(0f, Math.min(1f, tintAlpha)));
         GL20.glUniform1f(uHover, Math.max(0f, Math.min(1f, hover)));
-        GL20.glUniform1f(uTime, (System.nanoTime() / 1_000_000_000.0f));
+        GL20.glUniform1f(uTime, System.nanoTime() / 1_000_000_000.0f);
         GL20.glUniform1i(uSampler, 0);
 
         GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
 
         GL30.glBindVertexArray(0);
         GL20.glUseProgram(0);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
         RenderSystem.enableDepthTest();
-        frameReady = false;
     }
 
     private static void ensureInitialized(int width, int height) {
@@ -125,8 +105,7 @@ public final class LiquidGlassRenderer {
 
         if (width != snapshotWidth || height != snapshotHeight) {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, snapshotTexture);
-            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0,
-                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
             snapshotWidth = width;
             snapshotHeight = height;
@@ -134,11 +113,8 @@ public final class LiquidGlassRenderer {
     }
 
     private static void createResources(int width, int height) throws IOException {
-        String vertexSource = loadResource(VERTEX);
-        String fragmentSource = loadResource(FRAGMENT);
-
-        int vertex = compile(GL20.GL_VERTEX_SHADER, vertexSource);
-        int fragment = compile(GL20.GL_FRAGMENT_SHADER, fragmentSource);
+        int vertex = compile(GL20.GL_VERTEX_SHADER, loadResource(VERTEX));
+        int fragment = compile(GL20.GL_FRAGMENT_SHADER, loadResource(FRAGMENT));
         program = GL20.glCreateProgram();
         GL20.glAttachShader(program, vertex);
         GL20.glAttachShader(program, fragment);
@@ -161,10 +137,10 @@ public final class LiquidGlassRenderer {
         uSampler = GL20.glGetUniformLocation(program, "uSnapshot");
 
         float[] vertices = {
-                0f, 0f,  0f, 0f,
-                1f, 0f,  1f, 0f,
-                0f, 1f,  0f, 1f,
-                1f, 1f,  1f, 1f
+                0f, 0f, 0f, 0f,
+                1f, 0f, 1f, 0f,
+                0f, 1f, 0f, 1f,
+                1f, 1f, 1f, 1f
         };
         FloatBuffer buffer = org.lwjgl.BufferUtils.createFloatBuffer(vertices.length);
         buffer.put(vertices).flip();
@@ -187,8 +163,7 @@ public final class LiquidGlassRenderer {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP_TO_EDGE);
-        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0,
-                GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
         snapshotWidth = width;
