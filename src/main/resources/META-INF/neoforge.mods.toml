@@ -22,3 +22,17 @@ type="required"
 versionRange="[1.21.1,1.22)"
 ordering="NONE"
 side="CLIENT"
+
+[[dependencies.reglass]]
+modId="sodium"
+type="optional"
+versionRange="[0.8.12,0.9)"
+ordering="AFTER"
+side="CLIENT"
+
+[[dependencies.reglass]]
+modId="reeses_sodium_options"
+type="optional"
+versionRange="[2.2.3,)"
+ordering="AFTER"
+side="CLIENT"
