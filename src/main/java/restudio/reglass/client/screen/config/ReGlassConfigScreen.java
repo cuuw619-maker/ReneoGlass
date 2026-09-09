@@ -97,12 +97,12 @@ public final class ReGlassConfigScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Reset Defaults"), b -> {
             ReGlassSettingsIO.apply(new ReGlassSettingsIO.Data());
             ReGlassSettingsIO.saveFromMemory();
-            rebuildWidgets();
+            rebuildConfigWidgets();
         }).bounds(width / 2 - 105, height - 28, 100, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> close()).bounds(width / 2 + 5, height - 28, 100, 20).build());
     }
 
-    private void rebuildWidgets() { clearWidgets(); init(); }
+    private void rebuildConfigWidgets() { clearWidgets(); init(); }
 
     private void title(String name, int x, int y, int w) {
         Button b = Button.builder(Component.literal("[ " + name + " ]"), v -> {}).bounds(x, y, w, 20).build();
@@ -160,7 +160,6 @@ public final class ReGlassConfigScreen extends Screen {
         return true;
     }
 
-    @Override
     public void close() {
         ReGlassSettingsIO.saveFromMemory();
         if (minecraft != null) minecraft.setScreen(parent);
