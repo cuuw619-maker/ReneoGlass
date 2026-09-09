@@ -118,6 +118,8 @@ public final class LiquidGlassRenderer {
         program = GL20.glCreateProgram();
         GL20.glAttachShader(program, vertex);
         GL20.glAttachShader(program, fragment);
+        GL20.glBindAttribLocation(program, 0, "Position");
+        GL20.glBindAttribLocation(program, 1, "UV0");
         GL20.glLinkProgram(program);
         if (GL20.glGetProgrami(program, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
             String log = GL20.glGetProgramInfoLog(program);
