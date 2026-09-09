@@ -47,51 +47,51 @@ public final class ReGlassConfigScreen extends Screen {
 
         title("APPEARANCE", x, y, w); y += step;
         integer("Tint Color (HEX)", 0, 0xFFFFFF, c.defaultTintColor, x, y, w, v -> c.defaultTintColor = v); y += step;
-        decimal("Tint Alpha", 0, 1, .01, c.defaultTintAlpha, x, y, w, v -> c.defaultTintAlpha = v.floatValue()); y += step;
+        decimal("Tint Alpha", 0, 1, .01, c.defaultTintAlpha, x, y, w, v -> c.defaultTintAlpha = (float) v); y += step;
         integer("Blur Radius", 0, 64, c.defaultBlurRadius, x, y, w, v -> c.defaultBlurRadius = v); y += step;
-        decimal("Smoothing", -.02, .02, .001, c.defaultSmoothing, x, y, w, v -> c.defaultSmoothing = v.floatValue()); y += step + 8;
+        decimal("Smoothing", -.02, .02, .001, c.defaultSmoothing, x, y, w, v -> c.defaultSmoothing = (float) v); y += step + 8;
 
         title("SHADOW", x, y, w); y += step;
-        decimal("Shadow Expand", 0, 100, .5, c.defaultShadowExpand, x, y, w, v -> c.defaultShadowExpand = v.floatValue()); y += step;
-        decimal("Shadow Factor", 0, 1, .01, c.defaultShadowFactor, x, y, w, v -> c.defaultShadowFactor = v.floatValue()); y += step;
-        decimal("Shadow Offset X", -50, 50, .1, c.defaultShadowOffsetX, x, y, w, v -> c.defaultShadowOffsetX = v.floatValue()); y += step;
-        decimal("Shadow Offset Y", -50, 50, .1, c.defaultShadowOffsetY, x, y, w, v -> c.defaultShadowOffsetY = v.floatValue()); y += step;
+        decimal("Shadow Expand", 0, 100, .5, c.defaultShadowExpand, x, y, w, v -> c.defaultShadowExpand = (float) v); y += step;
+        decimal("Shadow Factor", 0, 1, .01, c.defaultShadowFactor, x, y, w, v -> c.defaultShadowFactor = (float) v); y += step;
+        decimal("Shadow Offset X", -50, 50, .1, c.defaultShadowOffsetX, x, y, w, v -> c.defaultShadowOffsetX = (float) v); y += step;
+        decimal("Shadow Offset Y", -50, 50, .1, c.defaultShadowOffsetY, x, y, w, v -> c.defaultShadowOffsetY = (float) v); y += step;
         integer("Shadow Color (HEX)", 0, 0xFFFFFF, c.defaultShadowColor, x, y, w, v -> c.defaultShadowColor = v); y += step;
-        decimal("Shadow Color Alpha", 0, 1, .01, c.defaultShadowColorAlpha, x, y, w, v -> c.defaultShadowColorAlpha = v.floatValue()); y += step + 8;
+        decimal("Shadow Color Alpha", 0, 1, .01, c.defaultShadowColorAlpha, x, y, w, v -> c.defaultShadowColorAlpha = (float) v); y += step + 8;
 
         title("REFRACTION", x, y, w); y += step;
-        decimal("Refraction Thickness", 0, 100, .5, c.defaultRefThickness, x, y, w, v -> c.defaultRefThickness = v.floatValue()); y += step;
-        decimal("Refraction Factor", .5, 4, .01, c.defaultRefFactor, x, y, w, v -> c.defaultRefFactor = v.floatValue()); y += step;
-        decimal("Dispersion", 0, 100, .1, c.defaultRefDispersion, x, y, w, v -> c.defaultRefDispersion = v.floatValue()); y += step;
-        decimal("Fresnel Range", 0, 100, .5, c.defaultRefFresnelRange, x, y, w, v -> c.defaultRefFresnelRange = v.floatValue()); y += step;
-        decimal("Fresnel Hardness", 0, 100, .5, c.defaultRefFresnelHardness, x, y, w, v -> c.defaultRefFresnelHardness = v.floatValue()); y += step;
-        decimal("Fresnel Factor", 0, 100, .5, c.defaultRefFresnelFactor, x, y, w, v -> c.defaultRefFresnelFactor = v.floatValue()); y += step + 8;
+        decimal("Refraction Thickness", 0, 100, .5, c.defaultRefThickness, x, y, w, v -> c.defaultRefThickness = (float) v); y += step;
+        decimal("Refraction Factor", .5, 4, .01, c.defaultRefFactor, x, y, w, v -> c.defaultRefFactor = (float) v); y += step;
+        decimal("Dispersion", 0, 100, .1, c.defaultRefDispersion, x, y, w, v -> c.defaultRefDispersion = (float) v); y += step;
+        decimal("Fresnel Range", 0, 100, .5, c.defaultRefFresnelRange, x, y, w, v -> c.defaultRefFresnelRange = (float) v); y += step;
+        decimal("Fresnel Hardness", 0, 100, .5, c.defaultRefFresnelHardness, x, y, w, v -> c.defaultRefFresnelHardness = (float) v); y += step;
+        decimal("Fresnel Factor", 0, 100, .5, c.defaultRefFresnelFactor, x, y, w, v -> c.defaultRefFresnelFactor = (float) v); y += step + 8;
 
         title("GLARE", x, y, w); y += step;
-        decimal("Glare Range", 0, 100, .5, c.defaultGlareRange, x, y, w, v -> c.defaultGlareRange = v.floatValue()); y += step;
-        decimal("Glare Hardness", 0, 100, .5, c.defaultGlareHardness, x, y, w, v -> c.defaultGlareHardness = v.floatValue()); y += step;
-        decimal("Glare Convergence", 0, 100, .5, c.defaultGlareConvergence, x, y, w, v -> c.defaultGlareConvergence = v.floatValue()); y += step;
-        decimal("Glare Opposite Factor", 0, 100, .5, c.defaultGlareOppositeFactor, x, y, w, v -> c.defaultGlareOppositeFactor = v.floatValue()); y += step;
-        decimal("Glare Factor", 0, 100, .5, c.defaultGlareFactor, x, y, w, v -> c.defaultGlareFactor = v.floatValue()); y += step;
+        decimal("Glare Range", 0, 100, .5, c.defaultGlareRange, x, y, w, v -> c.defaultGlareRange = (float) v); y += step;
+        decimal("Glare Hardness", 0, 100, .5, c.defaultGlareHardness, x, y, w, v -> c.defaultGlareHardness = (float) v); y += step;
+        decimal("Glare Convergence", 0, 100, .5, c.defaultGlareConvergence, x, y, w, v -> c.defaultGlareConvergence = (float) v); y += step;
+        decimal("Glare Opposite Factor", 0, 100, .5, c.defaultGlareOppositeFactor, x, y, w, v -> c.defaultGlareOppositeFactor = (float) v); y += step;
+        decimal("Glare Factor", 0, 100, .5, c.defaultGlareFactor, x, y, w, v -> c.defaultGlareFactor = (float) v); y += step;
         integer("Glare Angle (degrees)", -180, 180, Math.round(c.defaultGlareAngleRad * 180f / (float)Math.PI), x, y, w, v -> c.defaultGlareAngleRad = v * (float)Math.PI / 180f); y += step + 8;
 
         title("RIM LIGHT", x, y, w); y += step;
-        decimal("Rim Light X", -1, 1, .01, c.rimLight.direction().x, x, y, w, v -> setRim(v.floatValue(), c.rimLight.direction().y, c.rimLight.color(), c.rimLight.intensity())); y += step;
-        decimal("Rim Light Y", -1, 1, .01, c.rimLight.direction().y, x, y, w, v -> setRim(c.rimLight.direction().x, v.floatValue(), c.rimLight.color(), c.rimLight.intensity())); y += step;
+        decimal("Rim Light X", -1, 1, .01, c.rimLight.direction().x, x, y, w, v -> setRim((float) v, c.rimLight.direction().y, c.rimLight.color(), c.rimLight.intensity())); y += step;
+        decimal("Rim Light Y", -1, 1, .01, c.rimLight.direction().y, x, y, w, v -> setRim(c.rimLight.direction().x, (float) v, c.rimLight.color(), c.rimLight.intensity())); y += step;
         integer("Rim Light Color (HEX)", 0, 0xFFFFFF, c.rimLight.color(), x, y, w, v -> setRim(c.rimLight.direction().x, c.rimLight.direction().y, v, c.rimLight.intensity())); y += step;
-        decimal("Rim Light Intensity", 0, 2, .01, c.rimLight.intensity(), x, y, w, v -> setRim(c.rimLight.direction().x, c.rimLight.direction().y, c.rimLight.color(), v.floatValue())); y += step + 8;
+        decimal("Rim Light Intensity", 0, 2, .01, c.rimLight.intensity(), x, y, w, v -> setRim(c.rimLight.direction().x, c.rimLight.direction().y, c.rimLight.color(), (float) v)); y += step + 8;
 
         title("INTERACTION", x, y, w); y += step;
-        decimal("Hover Scale (px)", 0, 20, .1, c.hoverScalePx, x, y, w, v -> c.hoverScalePx = v.floatValue()); y += step;
-        decimal("Focus Scale (px)", 0, 20, .1, c.focusScalePx, x, y, w, v -> c.focusScalePx = v.floatValue()); y += step;
-        decimal("Focus Border Width", 0, 20, .1, c.focusBorderWidthPx, x, y, w, v -> c.focusBorderWidthPx = v.floatValue()); y += step;
-        decimal("Focus Border Intensity", 0, 2, .01, c.focusBorderIntensity, x, y, w, v -> c.focusBorderIntensity = v.floatValue()); y += step;
-        decimal("Focus Border Speed", 0, 20, .1, c.focusBorderSpeed, x, y, w, v -> c.focusBorderSpeed = v.floatValue()); y += step;
-        decimal("Pixelated Grid Size", 1, 64, .5, c.pixelatedGridSize, x, y, w, v -> c.pixelatedGridSize = v.floatValue()); y += step + 8;
+        decimal("Hover Scale (px)", 0, 20, .1, c.hoverScalePx, x, y, w, v -> c.hoverScalePx = (float) v); y += step;
+        decimal("Focus Scale (px)", 0, 20, .1, c.focusScalePx, x, y, w, v -> c.focusScalePx = (float) v); y += step;
+        decimal("Focus Border Width", 0, 20, .1, c.focusBorderWidthPx, x, y, w, v -> c.focusBorderWidthPx = (float) v); y += step;
+        decimal("Focus Border Intensity", 0, 2, .01, c.focusBorderIntensity, x, y, w, v -> c.focusBorderIntensity = (float) v); y += step;
+        decimal("Focus Border Speed", 0, 20, .1, c.focusBorderSpeed, x, y, w, v -> c.focusBorderSpeed = (float) v); y += step;
+        decimal("Pixelated Grid Size", 1, 64, .5, c.pixelatedGridSize, x, y, w, v -> c.pixelatedGridSize = (float) v); y += step + 8;
 
         title("ADVANCED", x, y, w); y += step;
-        decimal("Pixel Epsilon", 0, 20, .05, c.pixelEpsilon, x, y, w, v -> c.pixelEpsilon = v.floatValue()); y += step;
-        decimal("Debug Step", 0, 20, .1, c.debugStep, x, y, w, v -> c.debugStep = v.floatValue()); y += step;
+        decimal("Pixel Epsilon", 0, 20, .05, c.pixelEpsilon, x, y, w, v -> c.pixelEpsilon = (float) v); y += step;
+        decimal("Debug Step", 0, 20, .1, c.debugStep, x, y, w, v -> c.debugStep = (float) v); y += step;
         contentHeight = y;
 
         addRenderableWidget(Button.builder(Component.literal("Reset Defaults"), b -> {
@@ -155,7 +155,6 @@ public final class ReGlassConfigScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
-    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         scroll -= verticalAmount * 18;
         return true;
