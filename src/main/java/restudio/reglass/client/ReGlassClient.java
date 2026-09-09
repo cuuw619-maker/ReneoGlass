@@ -12,22 +12,28 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
-import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.api.WidgetStyle;
 import restudio.reglass.client.config.ReGlassSettingsIO;
 import restudio.reglass.client.screen.config.ReGlassConfigScreen;
 
 @EventBusSubscriber(modid = "reglass", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class ReGlassClient {
-    private static final String CATEGORY = "key.categories.reglass";
-
     private static KeyMapping playgroundKey;
     private static KeyMapping configKey;
-
     public static Minecraft minecraftClient;
 
     private ReGlassClient() {}
+
+    @SubscribeEvent
+    public static void clientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            minecraftClient = Minecraft.getInstance();
+            ReGlassSettingsIO.loadIntoMemory();
+        });
+    }
 
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -46,7 +52,6 @@ public final class ReGlassClient {
         public static void clientTick(ClientTickEvent.Post event) {
             Minecraft client = Minecraft.getInstance();
             minecraftClient = client;
-
             if (client.screen == null && configKey != null && configKey.consumeClick()) {
                 client.setScreen(new ReGlassConfigScreen(null));
             }
@@ -54,11 +59,6 @@ public final class ReGlassClient {
                 client.setScreen(new PlaygroundScreen());
             }
         }
-    }
-
-    public static void initClient() {
-        minecraftClient = Minecraft.getInstance();
-        ReGlassSettingsIO.loadIntoMemory();
     }
 
     public static class PlaygroundScreen extends Screen {
