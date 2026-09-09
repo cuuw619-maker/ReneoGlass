@@ -1,7 +1,7 @@
 #version 150
 
-in vec2 Position;
-in vec2 UV0;
+layout(location = 0) in vec2 Position;
+layout(location = 1) in vec2 UV0;
 
 uniform vec4 uRect;
 uniform vec2 uScreen;
