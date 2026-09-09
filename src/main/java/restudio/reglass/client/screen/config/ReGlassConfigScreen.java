@@ -63,7 +63,7 @@ public final class ReGlassConfigScreen extends Screen {
     private MappedSlider slider(String name, double min, double max, double step, double value,
                                 int x, int y, int w, java.util.function.DoubleConsumer setter) {
         MappedSlider s = MappedSlider.floatSlider(x, y, w, 22, Component.literal(name), min, max,
-                Mth.clamp(value, min, max), setter);
+                Mth.clamp(value, min, max), v -> setter.accept(v));
         addRenderableWidget(s);
         return s;
     }
