@@ -2,270 +2,168 @@ package restudio.reglass.client.screen.config;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
-import restudio.reglass.client.LiquidGlassWidget;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import org.joml.Vector2f;
 import restudio.reglass.client.api.ReGlassConfig;
-import restudio.reglass.client.api.WidgetStyle;
+import restudio.reglass.client.api.model.RimLight;
 import restudio.reglass.client.config.ReGlassSettingsIO;
 import restudio.reglass.client.ui.MappedSlider;
 
-public class ReGlassConfigScreen extends Screen {
+public final class ReGlassConfigScreen extends Screen {
     private final Screen parent;
-    private final List<PositionedWidget> positionedWidgets = new ArrayList<>();
-    private LiquidGlassWidget previewCircle;
-    private LiquidGlassWidget previewRounded;
-    private double scrollPosition;
-    private int totalListHeight;
+    private final List<Placed> settings = new ArrayList<>();
+    private double scroll;
+    private int contentHeight;
 
-    private record PositionedWidget(ClickableWidget widget, int y) {}
+    private record Placed(AbstractWidget widget, int baseY) {}
 
     public ReGlassConfigScreen(Screen parent) {
-        super(Text.literal("ReGlass Configuration"));
+        super(Component.literal("ReGlass Configuration"));
         this.parent = parent;
     }
 
     @Override
     protected void init() {
         super.init();
-        positionedWidgets.clear();
+        settings.clear();
+        ReGlassConfig c = ReGlassConfig.INSTANCE;
+        int x = 12;
+        int w = Math.min(360, width / 2 - 20);
+        int y = 8;
+        int step = 24;
 
-        int listWidth = Math.min(300, this.width / 2 - 20);
-        int widgetWidth = listWidth - 20;
-        int widgetX = 10 + 10;
+        title("GENERAL", x, y, w); y += step;
+        bool("Enable Redesign", c.features.enableRedesign, x, y, w, v -> c.features.enableRedesign = v); y += step;
+        bool("Glass Buttons", c.features.buttons, x, y, w, v -> c.features.buttons = v); y += step;
+        bool("Glass Sliders", c.features.sliders, x, y, w, v -> c.features.sliders = v); y += step;
+        bool("Glass Hotbar", c.features.hotbar, x, y, w, v -> c.features.hotbar = v); y += step;
+        bool("Cancel Screen Darkening", c.features.cancelScreenDarkening, x, y, w, v -> c.features.cancelScreenDarkening = v); y += step;
+        bool("Pixelated Grid", c.features.pixelatedGrid, x, y, w, v -> c.features.pixelatedGrid = v); y += step + 8;
 
-        int y = 5;
-        int gap = 4;
-        int widgetHeight = 20;
+        title("APPEARANCE", x, y, w); y += step;
+        integer("Tint Color (HEX)", 0, 0xFFFFFF, c.defaultTintColor, x, y, w, v -> c.defaultTintColor = v); y += step;
+        decimal("Tint Alpha", 0, 1, .01, c.defaultTintAlpha, x, y, w, v -> c.defaultTintAlpha = v.floatValue()); y += step;
+        integer("Blur Radius", 0, 64, c.defaultBlurRadius, x, y, w, v -> c.defaultBlurRadius = v); y += step;
+        decimal("Smoothing", -.02, .02, .001, c.defaultSmoothing, x, y, w, v -> c.defaultSmoothing = v.floatValue()); y += step + 8;
 
-        ReGlassConfig cfg = ReGlassConfig.INSTANCE;
+        title("SHADOW", x, y, w); y += step;
+        decimal("Shadow Expand", 0, 100, .5, c.defaultShadowExpand, x, y, w, v -> c.defaultShadowExpand = v.floatValue()); y += step;
+        decimal("Shadow Factor", 0, 1, .01, c.defaultShadowFactor, x, y, w, v -> c.defaultShadowFactor = v.floatValue()); y += step;
+        decimal("Shadow Offset X", -50, 50, .1, c.defaultShadowOffsetX, x, y, w, v -> c.defaultShadowOffsetX = v.floatValue()); y += step;
+        decimal("Shadow Offset Y", -50, 50, .1, c.defaultShadowOffsetY, x, y, w, v -> c.defaultShadowOffsetY = v.floatValue()); y += step;
+        integer("Shadow Color (HEX)", 0, 0xFFFFFF, c.defaultShadowColor, x, y, w, v -> c.defaultShadowColor = v); y += step;
+        decimal("Shadow Color Alpha", 0, 1, .01, c.defaultShadowColorAlpha, x, y, w, v -> c.defaultShadowColorAlpha = v.floatValue()); y += step + 8;
 
-        addTitle("General", widgetX, y, widgetWidth);
-        y += widgetHeight;
+        title("REFRACTION", x, y, w); y += step;
+        decimal("Refraction Thickness", 0, 100, .5, c.defaultRefThickness, x, y, w, v -> c.defaultRefThickness = v.floatValue()); y += step;
+        decimal("Refraction Factor", .5, 4, .01, c.defaultRefFactor, x, y, w, v -> c.defaultRefFactor = v.floatValue()); y += step;
+        decimal("Dispersion", 0, 100, .1, c.defaultRefDispersion, x, y, w, v -> c.defaultRefDispersion = v.floatValue()); y += step;
+        decimal("Fresnel Range", 0, 100, .5, c.defaultRefFresnelRange, x, y, w, v -> c.defaultRefFresnelRange = v.floatValue()); y += step;
+        decimal("Fresnel Hardness", 0, 100, .5, c.defaultRefFresnelHardness, x, y, w, v -> c.defaultRefFresnelHardness = v.floatValue()); y += step;
+        decimal("Fresnel Factor", 0, 100, .5, c.defaultRefFresnelFactor, x, y, w, v -> c.defaultRefFresnelFactor = v.floatValue()); y += step + 8;
 
-        ButtonWidget enableRedesignButton = ButtonWidget.builder(getEnableRedesignText(), button -> {
-            cfg.features.enableRedesign = !cfg.features.enableRedesign;
-            button.setMessage(getEnableRedesignText());
-            this.client.setScreen(new ReGlassConfigScreen(this.parent));
-        }).dimensions(widgetX, y, widgetWidth, widgetHeight).build();
-        addPositionedWidget(enableRedesignButton, y);
-        y += widgetHeight + gap;
+        title("GLARE", x, y, w); y += step;
+        decimal("Glare Range", 0, 100, .5, c.defaultGlareRange, x, y, w, v -> c.defaultGlareRange = v.floatValue()); y += step;
+        decimal("Glare Hardness", 0, 100, .5, c.defaultGlareHardness, x, y, w, v -> c.defaultGlareHardness = v.floatValue()); y += step;
+        decimal("Glare Convergence", 0, 100, .5, c.defaultGlareConvergence, x, y, w, v -> c.defaultGlareConvergence = v.floatValue()); y += step;
+        decimal("Glare Opposite Factor", 0, 100, .5, c.defaultGlareOppositeFactor, x, y, w, v -> c.defaultGlareOppositeFactor = v.floatValue()); y += step;
+        decimal("Glare Factor", 0, 100, .5, c.defaultGlareFactor, x, y, w, v -> c.defaultGlareFactor = v.floatValue()); y += step;
+        integer("Glare Angle (degrees)", -180, 180, Math.round(c.defaultGlareAngleRad * 180f / (float)Math.PI), x, y, w, v -> c.defaultGlareAngleRad = v * (float)Math.PI / 180f); y += step + 8;
 
-        ButtonWidget enableButtonsButton = ButtonWidget.builder(getFeatureText("Buttons", cfg.features.buttons), button -> {
-            cfg.features.buttons = !cfg.features.buttons;
-            button.setMessage(getFeatureText("Buttons", cfg.features.buttons));
-        }).dimensions(widgetX, y, widgetWidth, widgetHeight).build();
-        addPositionedWidget(enableButtonsButton, y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
+        title("RIM LIGHT", x, y, w); y += step;
+        decimal("Rim Light X", -1, 1, .01, c.rimLight.direction().x, x, y, w, v -> setRim(v.floatValue(), c.rimLight.direction().y, c.rimLight.color(), c.rimLight.intensity())); y += step;
+        decimal("Rim Light Y", -1, 1, .01, c.rimLight.direction().y, x, y, w, v -> setRim(c.rimLight.direction().x, v.floatValue(), c.rimLight.color(), c.rimLight.intensity())); y += step;
+        integer("Rim Light Color (HEX)", 0, 0xFFFFFF, c.rimLight.color(), x, y, w, v -> setRim(c.rimLight.direction().x, c.rimLight.direction().y, v, c.rimLight.intensity())); y += step;
+        decimal("Rim Light Intensity", 0, 2, .01, c.rimLight.intensity(), x, y, w, v -> setRim(c.rimLight.direction().x, c.rimLight.direction().y, c.rimLight.color(), v.floatValue())); y += step + 8;
 
-        ButtonWidget enableSlidersButton = ButtonWidget.builder(getFeatureText("Sliders", cfg.features.sliders), button -> {
-            cfg.features.sliders = !cfg.features.sliders;
-            button.setMessage(getFeatureText("Sliders", cfg.features.sliders));
-        }).dimensions(widgetX, y, widgetWidth, widgetHeight).build();
-        addPositionedWidget(enableSlidersButton, y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
+        title("INTERACTION", x, y, w); y += step;
+        decimal("Hover Scale (px)", 0, 20, .1, c.hoverScalePx, x, y, w, v -> c.hoverScalePx = v.floatValue()); y += step;
+        decimal("Focus Scale (px)", 0, 20, .1, c.focusScalePx, x, y, w, v -> c.focusScalePx = v.floatValue()); y += step;
+        decimal("Focus Border Width", 0, 20, .1, c.focusBorderWidthPx, x, y, w, v -> c.focusBorderWidthPx = v.floatValue()); y += step;
+        decimal("Focus Border Intensity", 0, 2, .01, c.focusBorderIntensity, x, y, w, v -> c.focusBorderIntensity = v.floatValue()); y += step;
+        decimal("Focus Border Speed", 0, 20, .1, c.focusBorderSpeed, x, y, w, v -> c.focusBorderSpeed = v.floatValue()); y += step;
+        decimal("Pixelated Grid Size", 1, 64, .5, c.pixelatedGridSize, x, y, w, v -> c.pixelatedGridSize = v.floatValue()); y += step + 8;
 
-        ButtonWidget enableHotbarButton = ButtonWidget.builder(getFeatureText("Hotbar", cfg.features.hotbar), button -> {
-            cfg.features.hotbar = !cfg.features.hotbar;
-            button.setMessage(getFeatureText("Hotbar", cfg.features.hotbar));
-        }).dimensions(widgetX, y, widgetWidth, widgetHeight).build();
-        addPositionedWidget(enableHotbarButton, y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
+        title("ADVANCED", x, y, w); y += step;
+        decimal("Pixel Epsilon", 0, 20, .05, c.pixelEpsilon, x, y, w, v -> c.pixelEpsilon = v.floatValue()); y += step;
+        decimal("Debug Step", 0, 20, .1, c.debugStep, x, y, w, v -> c.debugStep = v.floatValue()); y += step;
+        contentHeight = y;
 
-        ButtonWidget cancelDarkeningButton = ButtonWidget.builder(getFeatureText("Cancel Screen Darkening", cfg.features.cancelScreenDarkening), button -> {
-            cfg.features.cancelScreenDarkening = !cfg.features.cancelScreenDarkening;
-            button.setMessage(getFeatureText("Cancel Screen Darkening", cfg.features.cancelScreenDarkening));
-        }).dimensions(widgetX, y, widgetWidth, widgetHeight).build();
-        addPositionedWidget(cancelDarkeningButton, y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap * 2;
-
-        addTitle("Appearance", widgetX, y, widgetWidth);
-        y += widgetHeight;
-
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Tint Alpha"), 0f, 1f, cfg.defaultTintAlpha, v -> cfg.defaultTintAlpha = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.intSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Blur Radius"), 0, 32, cfg.defaultBlurRadius, v -> cfg.defaultBlurRadius = v), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Smoothing"), -0.02f, 0.02f, cfg.defaultSmoothing, v -> cfg.defaultSmoothing = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap * 2;
-
-        addTitle("Shadow", widgetX, y, widgetWidth);
-        y += widgetHeight;
-
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Shadow Expand"), 0f, 100f, cfg.defaultShadowExpand, v -> cfg.defaultShadowExpand = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Shadow Factor"), 0f, 1f, cfg.defaultShadowFactor, v -> cfg.defaultShadowFactor = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Shadow Offset Y"), -10f, 10f, cfg.defaultShadowOffsetY, v -> cfg.defaultShadowOffsetY = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap * 2;
-
-        addTitle("Refraction", widgetX, y, widgetWidth);
-        y += widgetHeight;
-
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Refraction Thickness"), 1f, 60f, cfg.defaultRefThickness, v -> cfg.defaultRefThickness = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Refraction Factor"), 1.0f, 2.5f, cfg.defaultRefFactor, v -> cfg.defaultRefFactor = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Fresnel Range"), 0f, 60f, cfg.defaultRefFresnelRange, v -> cfg.defaultRefFresnelRange = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Fresnel Hardness"), 0f, 100f, cfg.defaultRefFresnelHardness, v -> cfg.defaultRefFresnelHardness = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Fresnel Factor"), 0f, 100f, cfg.defaultRefFresnelFactor, v -> cfg.defaultRefFresnelFactor = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap * 2;
-
-        addTitle("Glare", widgetX, y, widgetWidth);
-        y += widgetHeight;
-
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Glare Range"), 0f, 60f, cfg.defaultGlareRange, v -> cfg.defaultGlareRange = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Glare Factor"), 0f, 100f, cfg.defaultGlareFactor, v -> cfg.defaultGlareFactor = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap * 2;
-
-        addTitle("Interactions", widgetX, y, widgetWidth);
-        y += widgetHeight;
-
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Hover Scale (px)"), 0f, 6f, cfg.hoverScalePx, v -> cfg.hoverScalePx = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Focus Scale (px)"), 0f, 8f, cfg.focusScalePx, v -> cfg.focusScalePx = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Focus Border Width (px)"), 0f, 6f, cfg.focusBorderWidthPx, v -> cfg.focusBorderWidthPx = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Focus Border Intensity"), 0f, 1f, cfg.focusBorderIntensity, v -> cfg.focusBorderIntensity = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Focus Border Speed"), 0f, 4f, cfg.focusBorderSpeed, v -> cfg.focusBorderSpeed = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap * 2;
-
-        addTitle("Debug", widgetX, y, widgetWidth);
-        y += widgetHeight;
-
-        ButtonWidget pixelatedGridButton = ButtonWidget.builder(getFeatureText("Pixelated Grid", cfg.features.pixelatedGrid), button -> {
-            cfg.features.pixelatedGrid = !cfg.features.pixelatedGrid;
-            button.setMessage(getFeatureText("Pixelated Grid", cfg.features.pixelatedGrid));
-        }).dimensions(widgetX, y, widgetWidth, widgetHeight).build();
-        addPositionedWidget(pixelatedGridButton, y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-
-        addSlider(MappedSlider.floatSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Grid Size"), 1f, 32f, cfg.pixelatedGridSize, v -> cfg.pixelatedGridSize = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-        addSlider(MappedSlider.intSlider(widgetX, y, widgetWidth, widgetHeight, Text.literal("Debug Step"), 0, 9, Math.round(cfg.debugStep), v -> cfg.debugStep = v.floatValue()), y).active = cfg.features.enableRedesign;
-        y += widgetHeight + gap;
-
-        this.totalListHeight = y;
-
-        addDrawableChild(ButtonWidget.builder(Text.translatable("controls.reset"), b -> {
+        addRenderableWidget(Button.builder(Component.literal("Reset Defaults"), b -> {
             ReGlassSettingsIO.apply(new ReGlassSettingsIO.Data());
-            if (this.client != null) {
-                this.client.setScreen(new ReGlassConfigScreen(this.parent));
-            }
-        }).dimensions(this.width / 2 - 100, this.height - 28, 98, 20).build());
-
-        addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close()).dimensions(this.width / 2 + 2, this.height - 28, 98, 20).build());
-
-        int previewX = this.width / 2 + 20;
-        int previewY = this.height / 2 - 50;
-
-        WidgetStyle s1 = WidgetStyle.create().tint(0xFFFFFF, Math.min(1f, Math.max(0f, cfg.defaultTintAlpha))).blurRadius(cfg.defaultBlurRadius)
-                .shadow(cfg.defaultShadowExpand, cfg.defaultShadowFactor, cfg.defaultShadowOffsetX, cfg.defaultShadowOffsetY)
-                .shadowColor(cfg.defaultShadowColor, cfg.defaultShadowColorAlpha)
-                .refractionThickness(cfg.defaultRefThickness).refractionFactor(cfg.defaultRefFactor).refractionDispersion(cfg.defaultRefDispersion)
-                .fresnelRange(cfg.defaultRefFresnelRange).fresnelHardness(cfg.defaultRefFresnelHardness).fresnelFactor(cfg.defaultRefFresnelFactor)
-                .glareRange(cfg.defaultGlareRange).glareHardness(cfg.defaultGlareHardness).glareConvergence(cfg.defaultGlareConvergence)
-                .glareOppositeFactor(cfg.defaultGlareOppositeFactor).glareFactor(cfg.defaultGlareFactor).glareAngleRad(cfg.defaultGlareAngleRad);
-
-        previewCircle = addDrawableChild(new LiquidGlassWidget(previewX, previewY, 100, 100, s1).setCornerRadiusPx(50f));
-
-        WidgetStyle s2 = WidgetStyle.create().tint(cfg.defaultTintColor, cfg.defaultTintAlpha).blurRadius(cfg.defaultBlurRadius)
-                .shadow(cfg.defaultShadowExpand, cfg.defaultShadowFactor, cfg.defaultShadowOffsetX, cfg.defaultShadowOffsetY)
-                .shadowColor(cfg.defaultShadowColor, cfg.defaultShadowColorAlpha);
-
-        previewRounded = addDrawableChild(new LiquidGlassWidget(previewX + 110, previewY + 20, 140, 60, s2).setCornerRadiusPx(16f));
+            ReGlassSettingsIO.saveFromMemory();
+            rebuildWidgets();
+        }).bounds(width / 2 - 105, height - 28, 100, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Done"), b -> close()).bounds(width / 2 + 5, height - 28, 100, 20).build());
     }
 
-    private Text getEnableRedesignText() {
-        return Text.literal("ReGlass Redesign: ").append(ReGlassConfig.INSTANCE.features.enableRedesign ? Text.translatable("options.on") : Text.translatable("options.off"));
+    private void rebuildWidgets() { clearWidgets(); init(); }
+
+    private void title(String name, int x, int y, int w) {
+        Button b = Button.builder(Component.literal("[ " + name + " ]"), v -> {}).bounds(x, y, w, 20).build();
+        b.active = false;
+        settings.add(new Placed(b, y));
+        addRenderableWidget(b);
     }
 
-    private Text getFeatureText(String feature, boolean enabled) {
-        return Text.literal(feature + ": ").append(enabled ? Text.translatable("options.on") : Text.translatable("options.off"));
+    private void bool(String name, boolean value, int x, int y, int w, java.util.function.Consumer<Boolean> setter) {
+        Button b = Button.builder(Component.literal(name + ": " + (value ? "ON" : "OFF")), v -> {
+            boolean next = !v.getMessage().getString().endsWith("ON");
+            setter.accept(next);
+            v.setMessage(Component.literal(name + ": " + (next ? "ON" : "OFF")));
+        }).bounds(x, y, w, 20).build();
+        settings.add(new Placed(b, y));
+        addRenderableWidget(b);
     }
 
-    private <T extends ClickableWidget> T addPositionedWidget(T widget, int y) {
-        positionedWidgets.add(new PositionedWidget(widget, y));
-        return addDrawableChild(widget);
+    private void integer(String name, int min, int max, int value, int x, int y, int w, java.util.function.IntConsumer setter) {
+        MappedSlider s = MappedSlider.intSlider(x, y, w, 20, Component.literal(name), min, max, Mth.clamp(value, min, max), setter::accept);
+        settings.add(new Placed(s, y));
+        addRenderableWidget(s);
     }
 
-    private MappedSlider addSlider(MappedSlider slider, int y) {
-        return addPositionedWidget(slider, y);
+    private void decimal(String name, double min, double max, double step, double value, int x, int y, int w, java.util.function.DoubleConsumer setter) {
+        MappedSlider s = MappedSlider.floatSlider(x, y, w, 20, Component.literal(name), min, max, Mth.clamp(value, min, max), setter::accept);
+        settings.add(new Placed(s, y));
+        addRenderableWidget(s);
     }
 
-    private void addTitle(String title, int x, int y, int width) {
-        addPositionedWidget(new TitleWidget(x, y, width, 20, Text.literal(title)), y);
+    private void setRim(float x, float y, int color, float intensity) {
+        Vector2f d = new Vector2f(x, y);
+        if (d.lengthSquared() < .000001f) d.set(-1, 1);
+        ReGlassConfig.INSTANCE.rimLight = new RimLight(d.normalize(), color, intensity);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
-
-        int listTop = 32;
-        int listBottom = this.height - 32;
-
-        for (PositionedWidget pw : positionedWidgets) {
-            pw.widget.setY(pw.y() + listTop - (int) this.scrollPosition);
-            if (pw.widget() instanceof TitleWidget tw) {
-                tw.visible = (pw.widget.getY() >= listTop && (pw.widget.getY() + 20) <= listBottom);
-            } else {
-                pw.widget.visible = (pw.widget.getY() >= listTop && (pw.widget.getY() + pw.widget.getHeight()) <= listBottom);
-            }
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics, mouseX, mouseY, partialTick);
+        int top = 32;
+        int bottom = height - 32;
+        int max = Math.max(0, contentHeight - (bottom - top));
+        scroll = Mth.clamp(scroll, 0, max);
+        for (Placed p : settings) {
+            int yy = p.baseY() - (int)scroll + top;
+            p.widget().setY(yy);
+            p.widget().visible = yy >= top && yy + p.widget().getHeight() <= bottom;
         }
-
-        super.render(context, mouseX, mouseY, delta);
-
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.of("ReGlass Config (Scrollable)"), this.width / 2, 15, 0xFFFFFFFF);
+        graphics.drawCenteredString(font, "ReGlass — Advanced Configuration", width / 2, 12, 0xFFFFFFFF);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        int listHeight = (this.height - 32) - 32;
-        int maxScroll = Math.max(0, this.totalListHeight - listHeight);
-        if (maxScroll > 0) {
-            this.scrollPosition -= verticalAmount * 10;
-            this.scrollPosition = MathHelper.clamp(this.scrollPosition, 0, maxScroll);
-            return true;
-        }
-        return false;
+        scroll -= verticalAmount * 18;
+        return true;
     }
 
     @Override
     public void close() {
         ReGlassSettingsIO.saveFromMemory();
-        if (this.client != null) {
-            this.client.setScreen(this.parent);
-        }
-    }
-
-    private class TitleWidget extends ClickableWidget {
-        public TitleWidget(int x, int y, int width, int height, Text message) {
-            super(x, y, width, height, message);
-        }
-
-        @Override
-        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            if (this.visible) {
-                context.drawCenteredTextWithShadow(ReGlassConfigScreen.this.textRenderer, this.getMessage(), this.getX() + this.getWidth() / 2, this.getY() + (this.getHeight() - 8) / 2, 0xFFFFFF);
-            }
-        }
-
-        @Override
-        public boolean isMouseOver(double mouseX, double mouseY) {
-            return false;
-        }
-
-        @Override
-        protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
+        if (minecraft != null) minecraft.setScreen(parent);
     }
 }
