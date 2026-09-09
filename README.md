@@ -1,45 +1,75 @@
-# ReGlass By ReStudio
-### Liquid Glass Implemented On Your Favorite Pixelated And Cubic Game
+# ReGlass by ReStudio
 
-<img width="669" height="422" alt="Screenshot 2025-10-20 113022" src="https://github.com/user-attachments/assets/d5c99347-c8cd-4c21-a430-54a0499c5f0f" />
+Liquid-glass UI rendering for Minecraft 1.21.1 on NeoForge.
 
+ReGlass is designed as a small rendering API that other Minecraft mods can use to build translucent, rounded and animated UI surfaces.
 
-ReGlass Is Meant To Be An API For Any Minecraft Mod.
+## Platform
 
-### Features
-- Easy, Customizable, And Fast Glass Rendering API.
-- Highly Optimized, Almost Vanilla Performance (For Dedicated GPU PCs).
-- Some Minecraft UI Redesigns.
+- Minecraft 1.21.1
+- NeoForge 21.1.x
+- Java 21
+- Optional Sodium integration through Sodium's configuration API
+- Compatible with Reese's Sodium Options when Sodium and Reese's are installed
+- No Fabric Loader, Fabric API, Fabric Loom, Yarn, or Fabric Mixin runtime is required
 
-### API Example:
+## Features
+
+- Customizable glass tint and alpha
+- Rounded surfaces and outlines
+- Configurable shadows
+- Smoothing and interaction effects
+- Hover and focus scaling
+- Refraction, glare and rim-light configuration values
+- Pixelated-grid controls
+- Standalone configuration screen
+- NeoForge Screen events for applying the glass style to vanilla widgets
+- Draggable `LiquidGlassWidget`
+
+## API example
+
 ```java
-// Widget Based Dimensions
-int cornerRadiusPx = 0.5f * Math.min(width, height); // Recommended Rounding
-ReGlassApi.create(context).fromWidget(someWidget).cornerRadius(cornerRadiusPx).render();
-
-// Custom Style 
-customStyle = WidgetStyle.create()
-        .tint(Formatting.GOLD.getColorValue(), 0.4f)
-        .blurRadius(0).shadow(25f, 0.2f, 0f, 3f)
-        .smoothing(.05f).shadowColor(0x000000, 1.0f);
-
-// Static Based Rendering E.g. Called From Screen `render()`.
-ReGlassApi.create(context).dimensions(10, 10, 100, 100).cornerRadius(cornerRadiusPx).style(customStyle).render();
-
-// You Must Apply Blur
-LiquidGlassUniforms.get().tryApplyBlur(context);
-
-
-// Ready To Use Widget (Screen Usage Example):
-boolean moveable = true; // Makes The Widget Draggable
-addDrawableChild(new LiquidGlassWidget(width / 2 - 75, height / 2 - 25, 150, 50, null).setMoveable(moveable));
+ReGlassApi.create(graphics)
+        .dimensions(10, 10, 100, 40)
+        .cornerRadius(12)
+        .style(WidgetStyle.create()
+                .tint(0xFFFFFF, 0.35f)
+                .shadow(12f, 0.20f, 0f, 3f)
+                .smoothing(0.05f))
+        .render();
 ```
 
-### Keybinds:
-- `G`: Open The Configuration Screen For ReGlass. (Click In-Game)
-- `H`: Playground, Shows a Styled ReGlass Widget, And You Can Summon More By Right Clicking. All Widgets Are Draggable. (Click In-Game)
+`graphics` is the vanilla/NeoForge `GuiGraphics` instance supplied to a screen or render event. The current 1.21.1 implementation intentionally avoids the incompatible 1.21.8 render-state/uniform pipeline and keeps the base renderer NeoForge-native.
 
-## Contributing Is More Than Welcome!
-Especially In The Minecraft UI Redesign Part, This Part Is Highly WIP And Needs a Lot of Work.
+## Ready-to-use widget
 
-<img width="426" height="251" alt="Sun Set" src="https://github.com/user-attachments/assets/8231c19b-abea-42b2-807f-35c3f089d3c0" />
+```java
+addRenderableWidget(
+        new LiquidGlassWidget(20, 20, 150, 40, WidgetStyle.create())
+                .setCornerRadiusPx(12)
+                .setMoveable(true)
+);
+```
+
+## Keybinds
+
+- `G` — open the ReGlass configuration screen
+- `H` — open the ReGlass playground
+
+## Configuration
+
+The standalone configuration is stored in `config/reglass.json`. When Sodium is installed, ReGlass also exposes its settings through Sodium's Config API, which allows Reese's Sodium Options to present the same configuration.
+
+## Development
+
+Build with:
+
+```bash
+./gradlew build
+```
+
+The GitHub Actions workflow uses Java 21 and the NeoForge ModDev Gradle plugin.
+
+## Contributing
+
+Contributions to the NeoForge 1.21.1 renderer, UI redesign and configuration system are welcome.
