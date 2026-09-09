@@ -83,12 +83,15 @@ public final class ReGlassClient {
                 ReGlassApi.create(graphics)
                         .fromWidget(widget)
                         .text(null)
-                        .cornerRadius(Math.min(widget.getHeight() * 0.5f, 8f))
+                        // Full capsule geometry is the core Liquid Glass language.
+                        .cornerRadius(widget.getHeight() * 0.5f)
                         .style(new WidgetStyle()
-                                .tint(config.defaultTintColor, Math.max(0.08f, config.defaultTintAlpha))
-                                .shadow(config.defaultShadowExpand, config.defaultShadowFactor,
-                                        config.defaultShadowOffsetX, config.defaultShadowOffsetY)
-                                .shadowColor(config.defaultShadowColor, config.defaultShadowColorAlpha))
+                                .tint(0xFFFFFF, Math.max(0.08f, config.defaultTintAlpha))
+                                .shadow(18f, 0.22f, 0f, 2f)
+                                .shadowColor(0x000000, 0.9f))
+                        .refraction(config.defaultRefFactor)
+                        .highlight(config.defaultGlareFactor / 100f)
+                        .morphing(config.focusBorderSpeed)
                         .hover(widget.isHoveredOrFocused() ? 1f : 0f)
                         .focus(widget.isFocused() ? 1f : 0f)
                         .render();
@@ -108,11 +111,11 @@ public final class ReGlassClient {
         protected void init() {
             super.init();
             customStyle = WidgetStyle.create()
-                    .tint(0xFFFFFF, 0.4f)
+                    .tint(0xFFFFFF, 0.22f)
                     .blurRadius(0)
-                    .shadow(25f, 0.2f, 0f, 3f)
+                    .shadow(18f, 0.22f, 0f, 3f)
                     .smoothing(.05f)
-                    .shadowColor(0x000000, 1.0f);
+                    .shadowColor(0x000000, 0.9f);
             addRenderableWidget(new LiquidGlassWidget(width / 2 - 75, height / 2 - 25, 150, 50, customStyle).setMoveable(true));
             addRenderableWidget(Button.builder(Component.literal("Toggle BG Blur"), b -> blur = !blur)
                     .bounds(10, 10, 120, 20).build());
@@ -120,7 +123,7 @@ public final class ReGlassClient {
 
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-            graphics.drawString(font, Component.literal("This is a Minecraft Screen"), width / 2 - 70, 10, 0xFFFFFFFF, true);
+            graphics.drawString(font, Component.literal("Liquid Glass Playground"), width / 2 - 55, 10, 0xFFFFFFFF, true);
             super.render(graphics, mouseX, mouseY, delta);
         }
 
@@ -133,7 +136,7 @@ public final class ReGlassClient {
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (button == 1) {
                 addRenderableWidget(new LiquidGlassWidget((int) mouseX - 50, (int) mouseY - 50, 100, 100,
-                        WidgetStyle.create().smoothing(.05f)).setMoveable(true));
+                        WidgetStyle.create().tint(0xFFFFFF, 0.18f).smoothing(.05f)).setMoveable(true));
                 return true;
             }
             return super.mouseClicked(mouseX, mouseY, button);
