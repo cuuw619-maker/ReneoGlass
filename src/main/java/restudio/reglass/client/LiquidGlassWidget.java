@@ -7,6 +7,12 @@ import net.minecraft.network.chat.Component;
 import restudio.reglass.client.api.ReGlassApi;
 import restudio.reglass.client.api.WidgetStyle;
 
+/**
+ * Standalone NeoForge-native glass widget.
+ *
+ * Rendering deliberately goes through GuiGraphics/ReGlassApi only. There is
+ * no Fabric renderer, mixin, render-state hook, or uniform manager involved.
+ */
 public class LiquidGlassWidget extends AbstractWidget {
     private float cornerRadiusPx;
     private boolean moveable;
@@ -33,8 +39,11 @@ public class LiquidGlassWidget extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        ReGlassApi.create(graphics).fromWidget(this).cornerRadius(cornerRadiusPx).style(this.style).render();
-        LiquidGlassUniforms.get().tryApplyBlur(graphics);
+        ReGlassApi.create(graphics)
+                .fromWidget(this)
+                .cornerRadius(cornerRadiusPx)
+                .style(this.style)
+                .render();
     }
 
     @Override
