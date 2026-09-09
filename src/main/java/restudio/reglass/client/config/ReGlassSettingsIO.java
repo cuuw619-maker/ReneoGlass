@@ -7,7 +7,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import net.neoforged.fml.loading.FMLPaths;
+import org.joml.Vector2f;
 import restudio.reglass.client.api.ReGlassConfig;
+import restudio.reglass.client.api.model.RimLight;
 
 public final class ReGlassSettingsIO {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -58,32 +60,28 @@ public final class ReGlassSettingsIO {
         d.tintAlpha = c.defaultTintAlpha;
         d.smoothing = c.defaultSmoothing;
         d.blurRadius = c.defaultBlurRadius;
-
         d.shadowExpand = c.defaultShadowExpand;
         d.shadowFactor = c.defaultShadowFactor;
         d.shadowOffsetX = c.defaultShadowOffsetX;
         d.shadowOffsetY = c.defaultShadowOffsetY;
         d.shadowColor = c.defaultShadowColor;
         d.shadowColorAlpha = c.defaultShadowColorAlpha;
-
         d.refThickness = c.defaultRefThickness;
         d.refFactor = c.defaultRefFactor;
         d.refDispersion = c.defaultRefDispersion;
         d.refFresnelRange = c.defaultRefFresnelRange;
         d.refFresnelHardness = c.defaultRefFresnelHardness;
         d.refFresnelFactor = c.defaultRefFresnelFactor;
-
         d.glareRange = c.defaultGlareRange;
         d.glareHardness = c.defaultGlareHardness;
         d.glareConvergence = c.defaultGlareConvergence;
         d.glareOppositeFactor = c.defaultGlareOppositeFactor;
         d.glareFactor = c.defaultGlareFactor;
         d.glareAngleRad = c.defaultGlareAngleRad;
-
-        d.rimLightX = c.rimLight.direction.x;
-        d.rimLightY = c.rimLight.direction.y;
-        d.rimLightColor = c.rimLight.color;
-        d.rimLightIntensity = c.rimLight.intensity;
+        d.rimLightX = c.rimLight.direction().x;
+        d.rimLightY = c.rimLight.direction().y;
+        d.rimLightColor = c.rimLight.color();
+        d.rimLightIntensity = c.rimLight.intensity();
         d.pixelEpsilon = c.pixelEpsilon;
         d.debugStep = c.debugStep;
         d.pixelatedGridSize = c.pixelatedGridSize;
@@ -105,7 +103,6 @@ public final class ReGlassSettingsIO {
         c.features.hotbar = d.features_hotbar;
         c.features.cancelScreenDarkening = d.features_cancelScreenDarkening;
         c.features.pixelatedGrid = d.features_pixelatedGrid;
-
         c.defaultTintColor = d.tintColor;
         c.defaultTintAlpha = d.tintAlpha;
         c.defaultSmoothing = d.smoothing;
@@ -140,10 +137,9 @@ public final class ReGlassSettingsIO {
         c.features.classWhitelist.addAll(d.classWhitelist);
         c.features.classBlacklist.clear();
         c.features.classBlacklist.addAll(d.classBlacklist);
-
-        c.rimLight.direction.set(d.rimLightX, d.rimLightY).normalize();
-        c.rimLight.color = d.rimLightColor;
-        c.rimLight.intensity = d.rimLightIntensity;
+        Vector2f direction = new Vector2f(d.rimLightX, d.rimLightY);
+        if (direction.lengthSquared() < 0.000001f) direction.set(-1f, 1f);
+        c.rimLight = new RimLight(direction.normalize(), d.rimLightColor, d.rimLightIntensity);
     }
 
     public static class Data {
