@@ -63,17 +63,23 @@ public final class ReGlassClient {
             }
         }
 
+        /**
+         * Render the glass BEFORE Minecraft draws the widgets themselves.
+         *
+         * This ordering is important: the snapshot contains the real pixels
+         * behind the control, the glass shader refracts that snapshot, and then
+         * Minecraft renders the button/slider text on top. The label therefore
+         * remains optically crisp instead of becoming part of the refracted
+         * background.
+         */
         @SubscribeEvent
-        public static void renderScreen(ScreenEvent.Render.Post event) {
+        public static void renderScreen(ScreenEvent.Render.Pre event) {
             Screen screen = event.getScreen();
             if (screen instanceof ReGlassConfigScreen || screen instanceof PlaygroundScreen) return;
 
             ReGlassConfig config = ReGlassConfig.INSTANCE;
             if (!config.features.enableRedesign) return;
 
-            // Snapshot the completed GUI framebuffer once. Each capsule then
-            // samples this independent texture, so the shader can displace the
-            // real pixels behind the glass without framebuffer feedback.
             LiquidGlassRenderer.beginFrame();
 
             float refraction = Math.max(0.0f, Math.min(1.0f, config.defaultRefFactor * 0.22f));
