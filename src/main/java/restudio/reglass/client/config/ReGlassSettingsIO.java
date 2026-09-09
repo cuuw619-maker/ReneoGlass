@@ -27,9 +27,7 @@ public final class ReGlassSettingsIO {
             }
             try (Reader r = Files.newBufferedReader(p)) {
                 Data d = GSON.fromJson(r, Data.class);
-                if (d != null) {
-                    apply(d);
-                }
+                if (d != null) apply(d);
             }
         } catch (Exception ignored) {
         }
@@ -82,12 +80,20 @@ public final class ReGlassSettingsIO {
         d.glareFactor = c.defaultGlareFactor;
         d.glareAngleRad = c.defaultGlareAngleRad;
 
+        d.rimLightX = c.rimLight.direction.x;
+        d.rimLightY = c.rimLight.direction.y;
+        d.rimLightColor = c.rimLight.color;
+        d.rimLightIntensity = c.rimLight.intensity;
+        d.pixelEpsilon = c.pixelEpsilon;
+        d.debugStep = c.debugStep;
         d.pixelatedGridSize = c.pixelatedGridSize;
         d.hoverScalePx = c.hoverScalePx;
         d.focusScalePx = c.focusScalePx;
         d.focusBorderWidthPx = c.focusBorderWidthPx;
         d.focusBorderIntensity = c.focusBorderIntensity;
         d.focusBorderSpeed = c.focusBorderSpeed;
+        d.classWhitelist.addAll(c.features.classWhitelist);
+        d.classBlacklist.addAll(c.features.classBlacklist);
         return d;
     }
 
@@ -122,12 +128,22 @@ public final class ReGlassSettingsIO {
         c.defaultGlareOppositeFactor = d.glareOppositeFactor;
         c.defaultGlareFactor = d.glareFactor;
         c.defaultGlareAngleRad = d.glareAngleRad;
+        c.pixelEpsilon = d.pixelEpsilon;
+        c.debugStep = d.debugStep;
         c.pixelatedGridSize = d.pixelatedGridSize;
         c.hoverScalePx = d.hoverScalePx;
         c.focusScalePx = d.focusScalePx;
         c.focusBorderWidthPx = d.focusBorderWidthPx;
         c.focusBorderIntensity = d.focusBorderIntensity;
         c.focusBorderSpeed = d.focusBorderSpeed;
+        c.features.classWhitelist.clear();
+        c.features.classWhitelist.addAll(d.classWhitelist);
+        c.features.classBlacklist.clear();
+        c.features.classBlacklist.addAll(d.classBlacklist);
+
+        c.rimLight.direction.set(d.rimLightX, d.rimLightY).normalize();
+        c.rimLight.color = d.rimLightColor;
+        c.rimLight.intensity = d.rimLightIntensity;
     }
 
     public static class Data {
@@ -141,8 +157,8 @@ public final class ReGlassSettingsIO {
         public float tintAlpha = 0f;
         public float smoothing = 0.003f;
         public int blurRadius = 12;
-        public float shadowExpand = 25.0f;
-        public float shadowFactor = 0.15f;
+        public float shadowExpand = 30.0f;
+        public float shadowFactor = 0.25f;
         public float shadowOffsetX = 0.0f;
         public float shadowOffsetY = 2.0f;
         public int shadowColor = 0x000000;
@@ -159,11 +175,19 @@ public final class ReGlassSettingsIO {
         public float glareOppositeFactor = 80.0f;
         public float glareFactor = 90.0f;
         public float glareAngleRad = (float) (-45.0 * Math.PI / 180.0);
+        public float rimLightX = -0.7071f;
+        public float rimLightY = 0.7071f;
+        public int rimLightColor = 0xFFFFFF;
+        public float rimLightIntensity = 0.1f;
+        public float pixelEpsilon = 2.0f;
+        public float debugStep = 9.0f;
         public float pixelatedGridSize = 8.0f;
         public float hoverScalePx = 1.5f;
         public float focusScalePx = 2.5f;
         public float focusBorderWidthPx = 2.0f;
         public float focusBorderIntensity = 0.75f;
         public float focusBorderSpeed = 1.6f;
+        public java.util.Set<String> classWhitelist = new java.util.HashSet<>();
+        public java.util.Set<String> classBlacklist = new java.util.HashSet<>();
     }
 }
