@@ -3,6 +3,7 @@ package restudio.reglass.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.KeyMapping;
@@ -12,9 +13,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
+import restudio.reglass.client.api.ReGlassApi;
+import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.api.WidgetStyle;
 import restudio.reglass.client.config.ReGlassSettingsIO;
 import restudio.reglass.client.screen.config.ReGlassConfigScreen;
@@ -57,6 +60,43 @@ public final class ReGlassClient {
             }
             if (client.screen == null && playgroundKey != null && playgroundKey.consumeClick()) {
                 client.setScreen(new PlaygroundScreen());
+            }
+        }
+
+        /**
+         * Applies the glass surface to vanilla/NeoForge widgets without relying
+         * on Fabric's widget mixins. Rendering happens after the widget itself,
+         * so the vanilla text and hitboxes remain untouched.
+         */
+        @SubscribeEvent
+        public static void renderScreen(ScreenEvent.Render.Post event) {
+            Screen screen = event.getScreen();
+            if (screen instanceof ReGlassConfigScreen || screen instanceof PlaygroundScreen) return;
+
+            ReGlassConfig config = ReGlassConfig.INSTANCE;
+            if (!config.features.enableRedesign) return;
+
+            GuiGraphics graphics = event.getGuiGraphics();
+            for (var listener : screen.children()) {
+                if (!(listener instanceof AbstractWidget widget) || !widget.visible) continue;
+
+                String name = widget.getClass().getSimpleName().toLowerCase(java.util.Locale.ROOT);
+                boolean slider = name.contains("slider");
+                boolean button = widget instanceof Button || !slider;
+                if ((slider && !config.features.sliders) || (button && !config.features.buttons)) continue;
+
+                ReGlassApi.create(graphics)
+                        .fromWidget(widget)
+                        .text(null)
+                        .cornerRadius(Math.min(widget.getHeight() * 0.5f, 8f))
+                        .style(new WidgetStyle()
+                                .tint(config.defaultTintColor, Math.max(0.08f, config.defaultTintAlpha))
+                                .shadow(config.defaultShadowExpand, config.defaultShadowFactor,
+                                        config.defaultShadowOffsetX, config.defaultShadowOffsetY)
+                                .shadowColor(config.defaultShadowColor, config.defaultShadowColorAlpha))
+                        .hover(widget.isHoveredOrFocused() ? 1f : 0f)
+                        .focus(widget.isFocused() ? 1f : 0f)
+                        .render();
             }
         }
     }
