@@ -138,6 +138,7 @@ public final class ReGlassSodiumConfig implements ConfigEntryPoint {
                 .setName(t(id + ".name"))
                 .setTooltip(t(id + ".tooltip"))
                 .setRange(min, max, step)
+                .setValueFormatter(v -> Component.literal(Integer.toString(v)))
                 .setDefaultValue(getter.get())
                 .setBinding(setter, getter)
                 .setStorageHandler(ReGlassSettingsIO::saveFromMemory)
