@@ -1,71 +1,60 @@
 plugins {
-	id 'fabric-loom' version "${loom_version}"
-	id 'maven-publish'
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.107'
 }
 
 version = project.mod_version
 group = project.maven_group
 
 base {
-	archivesName = project.archives_base_name
+    archivesName = project.archives_base_name
 }
 
 repositories {
-
-
+    mavenCentral()
 }
 
-dependencies {
-
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+neoForge {
+    version = project.neo_version
 }
 
-processResources {
-	inputs.property "version", project.version
-
-	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
-	}
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+    options.release = 21
 }
 
 java {
-
-
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
-
-	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
-	}
+    manifest {
+        attributes([
+            'Specification-Title'     : project.archives_base_name,
+            'Specification-Vendor'    : project.maven_group,
+            'Specification-Version'   : project.version,
+            'Implementation-Title'    : project.archives_base_name,
+            'Implementation-Version'  : project.version,
+            'Implementation-Vendor'   : project.maven_group
+        ])
+    }
+    from('LICENSE') {
+        rename { "${it}_${project.archives_base_name}" }
+    }
 }
 
-
 publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
-			from components.java
-		}
-	}
-
-
+    publications {
+        create('mavenJava', MavenPublication) {
+            artifactId = project.archives_base_name
+            from components.java
+        }
+    }
     repositories {
-
-
     }
 }
