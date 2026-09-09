@@ -16,10 +16,10 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
-import restudio.reglass.client.api.ReGlassApi;
-import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.api.WidgetStyle;
+import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.config.ReGlassSettingsIO;
+import restudio.reglass.client.render.LiquidGlassRenderer;
 import restudio.reglass.client.screen.config.ReGlassConfigScreen;
 
 @EventBusSubscriber(modid = "reglass", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
@@ -71,7 +71,15 @@ public final class ReGlassClient {
             ReGlassConfig config = ReGlassConfig.INSTANCE;
             if (!config.features.enableRedesign) return;
 
-            GuiGraphics graphics = event.getGuiGraphics();
+            // Snapshot the completed GUI framebuffer once. Each capsule then
+            // samples this independent texture, so the shader can displace the
+            // real pixels behind the glass without framebuffer feedback.
+            LiquidGlassRenderer.beginFrame();
+
+            float refraction = Math.max(0.0f, Math.min(1.0f, config.defaultRefFactor * 0.22f));
+            float highlight = Math.max(0.0f, Math.min(1.0f, config.defaultGlareFactor / 100.0f));
+            float tintAlpha = Math.max(0.05f, Math.min(0.35f, config.defaultTintAlpha));
+
             for (var listener : screen.children()) {
                 if (!(listener instanceof AbstractWidget widget) || !widget.visible) continue;
 
@@ -80,21 +88,11 @@ public final class ReGlassClient {
                 boolean button = widget instanceof Button || !slider;
                 if ((slider && !config.features.sliders) || (button && !config.features.buttons)) continue;
 
-                ReGlassApi.create(graphics)
-                        .fromWidget(widget)
-                        .text(null)
-                        // Full capsule geometry is the core Liquid Glass language.
-                        .cornerRadius(widget.getHeight() * 0.5f)
-                        .style(new WidgetStyle()
-                                .tint(0xFFFFFF, Math.max(0.08f, config.defaultTintAlpha))
-                                .shadow(18f, 0.22f, 0f, 2f)
-                                .shadowColor(0x000000, 0.9f))
-                        .refraction(config.defaultRefFactor)
-                        .highlight(config.defaultGlareFactor / 100f)
-                        .morphing(config.focusBorderSpeed)
-                        .hover(widget.isHoveredOrFocused() ? 1f : 0f)
-                        .focus(widget.isFocused() ? 1f : 0f)
-                        .render();
+                float radius = widget.getHeight() * 0.5f;
+                float hover = widget.isHoveredOrFocused() ? 1.0f : 0.0f;
+                LiquidGlassRenderer.renderWidget(
+                        widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(),
+                        radius, refraction, highlight, tintAlpha, hover);
             }
         }
     }
