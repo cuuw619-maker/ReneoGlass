@@ -1,0 +1,47 @@
+name: Auto Build ReGlass
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reglass-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build NeoForge 1.21.1
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Build mod
+        run: ./gradlew --no-daemon build
+
+      - name: Upload JARs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReGlass-NeoForge-1.21.1
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14
